@@ -1,60 +1,75 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const gallery = document.getElementById("gallery");
-    const loadMoreButton = document.getElementById("loadMore");
-    const clearGalleryButton = document.getElementById("clearGallery");
-    const removeLastButton = document.getElementById("removeLast");
-    const reverseGalleryButton = document.getElementById("reverseGallery");
-    const shuffleGalleryButton = document.getElementById("shuffleGallery"); 
+document.addEventListener('DOMContentLoaded', () => {
+    const galleryContainer = document.getElementById('gallery');
+    const loadMoreBtn = document.getElementById('loadMore');
+    const clearGalleryBtn = document.getElementById('clearGallery');
+    const removeLastBtn = document.getElementById('removeLast');
+    const reverseGalleryBtn = document.getElementById('reverseGallery');
+    const shuffleGalleryBtn = document.getElementById('shuffleGallery');
 
-    async function fetchImages(count = 4) {
+    let images = [];
+
+    async function fetchImages() {
         try {
-            const response = await fetch(`https://picsum.photos/v2/list?limit=${count}`);
-            if (!response.ok) throw new Error("Помилка мережевого запиту");
-            return await response.json();
+            const response = await fetch('https://picsum.photos/v2/list');
+            const data = await response.json();
+            images = data;
+            displayImages(images.slice(0, 4));
         } catch (error) {
-            console.error("Помилка завантаження:", error);
+            console.error('Помилка завантаження зображень:', error);
         }
     }
 
-    async function loadImages() {
-        const images = await fetchImages(4);
-        images.forEach(image => {
-            const img = document.createElement("img");
-            img.src = `${image.download_url}?w=150&h=150`;
-            img.alt = `Зображення від ${image.author}`;
-            gallery.appendChild(img);
+    function displayImages(imageArray) {
+        imageArray.forEach(image => {
+            const imgElement = document.createElement('img');
+            imgElement.src = `${image.download_url}?w=300&h=200`;
+            imgElement.alt = `Зображення від ${image.author}`;
+            imgElement.classList.add('gallery-item');
+            galleryContainer.appendChild(imgElement);
         });
     }
 
+    function loadMoreImages() {
+        const currentImages = galleryContainer.children.length;
+        const newImages = images.slice(currentImages, currentImages + 4);
+        if (newImages.length) {
+            displayImages(newImages);
+        } else {
+            alert('Більше зображень немає');
+        }
+    }
+
     function clearGallery() {
-        gallery.innerHTML = "";
+        galleryContainer.innerHTML = '';
     }
 
     function removeLastImage() {
-        const lastImage = gallery.lastElementChild;
-        if (lastImage) {
-            gallery.removeChild(lastImage);
+        if (galleryContainer.lastElementChild) {
+            galleryContainer.removeChild(galleryContainer.lastElementChild);
         }
     }
 
     function reverseGallery() {
-        const images = Array.from(gallery.children);
-        gallery.innerHTML = "";
-        images.reverse().forEach(img => gallery.appendChild(img));
+        const allImages = Array.from(galleryContainer.children);
+        galleryContainer.innerHTML = '';
+        allImages.reverse().forEach(img => galleryContainer.appendChild(img));
     }
 
     function shuffleGallery() {
-        const images = Array.from(gallery.children);
-        gallery.innerHTML = "";
-        images.sort(() => Math.random() - 0.5); 
-        images.forEach(img => gallery.appendChild(img));
+        const allImages = Array.from(galleryContainer.children);
+        for (let i = allImages.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [allImages[i], allImages[j]] = [allImages[j], allImages[i]];
+        }
+        galleryContainer.innerHTML = '';
+        allImages.forEach(img => galleryContainer.appendChild(img));
     }
 
-    loadMoreButton.addEventListener("click", loadImages);
-    clearGalleryButton.addEventListener("click", clearGallery);
-    removeLastButton.addEventListener("click", removeLastImage);
-    reverseGalleryButton.addEventListener("click", reverseGallery);
-    shuffleGalleryButton.addEventListener("click", shuffleGallery); 
+    loadMoreBtn.addEventListener('click', loadMoreImages);
+    clearGalleryBtn.addEventListener('click', clearGallery);
+    removeLastBtn.addEventListener('click', removeLastImage);
+    reverseGalleryBtn.addEventListener('click', reverseGallery);
+    shuffleGalleryBtn.addEventListener('click', shuffleGallery);
 
-    loadImages();
+    fetchImages();
 });
